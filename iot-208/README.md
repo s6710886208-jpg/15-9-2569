@@ -23,7 +23,7 @@ Each reading has six simulated fields: `temperature_c`, `humidity_pct`, `light_l
 
 ## Database security
 
-The Realtime Database currently uses locked rules (`.read: false`, `.write: false`). With those rules the public dashboard and unauthenticated ESPHome REST requests cannot read or write samples yet. A scoped classroom demo rule for `/iot-208/esp32-01` is shown below, consistent with the instructor's lab example, but has not been applied:
+The Realtime Database rules have been deployed. Global read/write access is denied; unauthenticated dashboard reads and ESPHome writes are allowed only below `/iot-208/esp32-01`:
 
 ```json
 {
@@ -37,7 +37,7 @@ The Realtime Database currently uses locked rules (`.read: false`, `.write: fals
 }
 ```
 
-Applying it allows anyone who knows the database URL to read, replace, or append data under that device node. Do not use the rule for a production database. After approval, apply it in Firebase Console → Realtime Database → Rules and publish. To close access again, return to the locked rules.
+Anyone who knows the database URL can read, replace, or append data under that device node. This is intended for the classroom demo. Do not use the rule for a production database. To close access again, restore the locked rules.
 
 ## ESPHome setup
 
