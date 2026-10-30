@@ -22,11 +22,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Assemble dashboard at /freeboard
+        run: |
+          mkdir -p _site/freeboard
+          cp -R freeboard/. _site/freeboard/
       - name: Upload dashboard artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: freeboard
+          path: _site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
