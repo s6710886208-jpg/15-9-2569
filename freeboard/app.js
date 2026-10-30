@@ -98,7 +98,7 @@ function renderChart() {
 }
 
 function connect() {
-  if (!config.databaseUrl || config.databaseUrl.includes("YOUR_DATABASE_HOST") || !config.dataPath) {
+  if (!config.databaseUrl || config.databaseUrl.includes("YOUR_FIREBASE_DATABASE_URL") || !config.dataPath) {
     setConnection(false, "Dashboard needs setup", "Edit freeboard/config.js with your RTDB URL and database path");
     document.querySelector("#last-seen").textContent = "Add your Firebase project details to begin";
     return;
@@ -137,6 +137,7 @@ updateClock();
 setInterval(updateClock, 1000);
 renderChart();
 connect();
+
 
 
 
