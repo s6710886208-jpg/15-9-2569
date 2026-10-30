@@ -1,0 +1,129 @@
+esphome:
+  name: iot-simulator
+  friendly_name: IoT Sensor Simulator
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+  ap:
+    ssid: "IoT-Simulator-Recovery"
+    password: "iot208demo"
+
+captive_portal:
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Asia/Bangkok
+
+http_request:
+  timeout: 10s
+  verify_ssl: true
+
+sensor:
+  - platform: template
+    id: temperature_c
+    name: "Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: return 25.0f + random_float() * 10.0f;
+  - platform: template
+    id: humidity_pct
+    name: "Humidity"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: return 45.0f + random_float() * 35.0f;
+  - platform: template
+    id: light_lux
+    name: "Light"
+    unit_of_measurement: "lx"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: return 100.0f + random_float() * 900.0f;
+  - platform: template
+    id: pressure_hpa
+    name: "Pressure"
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: return 1000.0f + random_float() * 25.0f;
+  - platform: template
+    id: soil_moisture_pct
+    name: "Soil Moisture"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: return 20.0f + random_float() * 65.0f;
+  - platform: template
+    id: air_quality_aqi
+    name: "Air Quality AQI"
+    unit_of_measurement: "AQI"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: return 10.0f + random_float() * 140.0f;
+
+interval:
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            lambda: return WiFi.isConnected() && id(sntp_time).now().is_valid();
+          then:
+            - http_request.send:
+                method: PUT
+                url: "https://YOUR_DATABASE_HOST/iot-208/esp32-01/latest.json"
+                request_headers:
+                  Content-Type: application/json
+                json: |-
+                  root["temperature_c"] = id(temperature_c).state;
+                  root["humidity_pct"] = id(humidity_pct).state;
+                  root["light_lux"] = id(light_lux).state;
+                  root["pressure_hpa"] = id(pressure_hpa).state;
+                  root["soil_moisture_pct"] = id(soil_moisture_pct).state;
+                  root["air_quality_aqi"] = id(air_quality_aqi).state;
+                  root["timestamp"] = id(sntp_time).now().timestamp;
+                on_response:
+                  then:
+                    - logger.log:
+                        format: "Firebase latest HTTP status = %d"
+                        args: [response->status_code]
+                on_error:
+                  then:
+                    - logger.log: "Firebase latest request failed"
+            - http_request.send:
+                method: POST
+                url: "https://YOUR_DATABASE_HOST/iot-208/esp32-01/history.json"
+                request_headers:
+                  Content-Type: application/json
+                json: |-
+                  root["temperature_c"] = id(temperature_c).state;
+                  root["humidity_pct"] = id(humidity_pct).state;
+                  root["light_lux"] = id(light_lux).state;
+                  root["pressure_hpa"] = id(pressure_hpa).state;
+                  root["soil_moisture_pct"] = id(soil_moisture_pct).state;
+                  root["air_quality_aqi"] = id(air_quality_aqi).state;
+                  root["timestamp"] = id(sntp_time).now().timestamp;
+                on_response:
+                  then:
+                    - logger.log:
+                        format: "Firebase history HTTP status = %d"
+                        args: [response->status_code]
+                on_error:
+                  then:
+                    - logger.log: "Firebase history request failed"
+          else:
+            - logger.log: "Skip Firebase: WiFi or SNTP not ready"
+
+
+
+
