@@ -1,55 +1,51 @@
 # ESP32 + ESPHome + Firebase RTDB + GitHub Pages
 
-Project starter for the assignment. The supplied instructor example uses ESPHome REST requests: `PUT` to a current `latest` node and `POST` to append timestamped records in `history`. This starter keeps that flow, adds six simulated fields, and serves the live dashboard from `/freeboard/`.
+This project uses the instructor's REST pattern: ESPHome sends the current sample with `PUT` to `latest`, then appends each reading with `POST` to `history`. The Firebase project display name and data root are `iot-208`, using the final three digits of student ID `6710886208`.
+
+## Resources already created
+
+- Firebase project display name: `iot-208`
+- Firebase project ID: `iot-208-6710886208` (the project ID `iot-208` was already registered in a different Google account)
+- Realtime Database location: Singapore (`asia-southeast1`)
+- Realtime Database URL: `https://iot-208-6710886208-default-rtdb.asia-southeast1.firebasedatabase.app`
+- Data root: `/iot-208/esp32-01`
+- GitHub repository: `https://github.com/s6710886208-jpg/15-9-2569`
+- Dashboard route: `/15-9-2569/freeboard/`
 
 ## Data model
 
 ```text
-/<DATABASE_ROOT>/latest
-/<DATABASE_ROOT>/history/<Firebase push id>
+/iot-208/esp32-01/latest
+/iot-208/esp32-01/history/<Firebase push id>
 ```
 
-Each sample contains `temperature_c`, `humidity_pct`, `light_lux`, `pressure_hpa`, `soil_moisture_pct`, `air_quality_aqi`, and `timestamp` (Unix seconds). The first six satisfy the six-column minimum. The ESPHome file has separate requests for latest and history every 10 seconds.
+Each reading has six simulated fields: `temperature_c`, `humidity_pct`, `light_lux`, `pressure_hpa`, `soil_moisture_pct`, and `air_quality_aqi`, plus a Unix `timestamp`.
 
-## 1. Set your student database name
+## Database security
 
-Create a Firebase project and Realtime Database named `iot-208`, where `208` is the last three digits of your student ID. Copy the exact RTDB URL from Firebase Console. The sample RTDB data path is `/iot-208/esp32-01`; use `iot-208` consistently in the ESPHome YAML, Firebase Rules, and dashboard config.
-
-## 2. Configure Firebase
-
-For classroom demonstration, make only your assignment root readable/writable as in the instructor's lab-only example, and understand this allows unauthenticated access to that subtree. Do not use these open rules for a production database. In Firebase Console → Realtime Database → Rules, keep the root `iot-208` in this scoped demo rule:
+The Realtime Database currently uses locked rules (`.read: false`, `.write: false`). With those rules the public dashboard and unauthenticated ESPHome REST requests cannot read or write samples yet. A scoped classroom demo rule for `/iot-208/esp32-01` is shown below, consistent with the instructor's lab example, but has not been applied:
 
 ```json
 {
   "rules": {
     ".read": false,
     ".write": false,
-    "iot-208": { ".read": true, ".write": true }
+    "iot-208": {
+      "esp32-01": { ".read": true, ".write": true }
+    }
   }
 }
 ```
 
-The rule above grants public read/write access only under your assignment root, matching the classroom demonstration example.
+Applying it allows anyone who knows the database URL to read, replace, or append data under that device node. Do not use the rule for a production database. After approval, apply it in Firebase Console → Realtime Database → Rules and publish. To close access again, return to the locked rules.
 
-## 3. Configure and flash ESPHome
+## ESPHome setup
 
-Copy `esphome/secrets.yaml.example` to `secrets.yaml` in your ESPHome configuration directory and add your Wi-Fi credentials. Copy `esphome/firebase-iot.yaml` there too. Replace `YOUR_DATABASE_HOST` with the hostname only (no scheme or trailing slash), and replace the `/iot-208/esp32-01` path with your root/device path. Install using ESPHome Device Builder. Keep the ESP32 powered and online during the teacher's check.
+Copy `esphome/secrets.yaml.example` to `secrets.yaml` in your ESPHome configuration and enter Wi-Fi credentials. Copy `esphome/firebase-iot.yaml`, then flash it using ESPHome Device Builder. The YAML contains the assigned database URL and path already. Keep the ESP32 powered and online during the teacher's check.
 
-## 4. Configure the dashboard
+## GitHub Pages
 
-Edit `freeboard/config.js`: set `databaseUrl` to the complete RTDB URL (for example `https://your-db.asia-southeast1.firebasedatabase.app`), and `dataPath` to your root/device path (example `/iot-208/esp32-01`). Commit and push this repository to GitHub. In repository Settings → Pages, select GitHub Actions as the deployment source. Dashboard address format: `https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPOSITORY/freeboard/`.
+The workflow publishes only the `freeboard` folder under the `/freeboard/` route. Pages is set to use GitHub Actions. Once its deployment succeeds, the URL is `https://s6710886208-jpg.github.io/15-9-2569/freeboard/`.
 
-## 5. Check real-time operation
-
-Open the dashboard and Firebase Console side by side. Within 10 seconds, `latest` should update and a new `history` record should appear. The page subscribes using Firebase's browser SDK, shows connection status and the latest values, and plots recent samples. Check ESPHome logs for HTTP 200 on both writes. HTTP 401 usually means Rules/path mismatch; a connection error commonly means Wi-Fi, DNS, TLS, or wrong database host.
-
-## Submission
-
-Submit only the published GitHub Pages URL ending `/freeboard/` in Classroom. GitHub Pages, Firebase, and the physical ESP32 must all be configured by the student; this workspace cannot publish to accounts or validate real device telemetry without those credentials/device details.
-
-
-
-
-
-
+The dashboard subscribes to Firebase live updates and shows the latest values, history chart, connection status, and summary statistics. After the database rule is changed and the ESP32 connects, verify that `latest` and a new `history` record appear in Firebase Console every 10 seconds.
 
