@@ -1,15 +1,17 @@
-# Dependency-free deploy workflow for GitHub Pages.
-name: Deploy dashboard
+name: Deploy iot-208 dashboard
 on:
   push:
     branches: [main]
+    paths:
+      - 'freeboard/**'
+      - '.github/workflows/iot-208-pages.yml'
   workflow_dispatch:
 permissions:
   contents: read
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  group: iot-208-pages
   cancel-in-progress: true
 jobs:
   deploy:
@@ -20,10 +22,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Upload Pages artifact
+      - name: Upload dashboard artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: freeboard
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
