@@ -81,7 +81,7 @@ interval:
           then:
             - http_request.send:
                 method: PUT
-                url: "https://YOUR_DATABASE_HOST/iot-208/esp32-01/latest.json"
+                url: "https://iot-208-6710886208-default-rtdb.asia-southeast1.firebasedatabase.app/iot-208/esp32-01/latest.json"
                 request_headers:
                   Content-Type: application/json
                 json: |-
@@ -102,7 +102,7 @@ interval:
                     - logger.log: "Firebase latest request failed"
             - http_request.send:
                 method: POST
-                url: "https://YOUR_DATABASE_HOST/iot-208/esp32-01/history.json"
+                url: "https://iot-208-6710886208-default-rtdb.asia-southeast1.firebasedatabase.app/iot-208/esp32-01/history.json"
                 request_headers:
                   Content-Type: application/json
                 json: |-
@@ -123,6 +123,7 @@ interval:
                     - logger.log: "Firebase history request failed"
           else:
             - logger.log: "Skip Firebase: WiFi or SNTP not ready"
+
 
 
 
